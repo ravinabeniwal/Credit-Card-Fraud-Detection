@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FraudGuard – Credit Card Fraud Detection</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="topin">
+    <a class="brand" href="#dashboard" aria-label="FraudGuard home">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z" fill="url(#bg)"/><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d31bb5"/><stop offset="1" stop-color="#6d28d9"/></linearGradient></defs><path d="m8.5 12 2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>FraudGuard</span>
+    </a>
+
+    <nav id="navwrap" class="navwrap" aria-label="Main navigation">
+      <button class="nav navtop active" data-page="dashboard" type="button">Dashboard</button>
+
+      <div class="navgroup">
+        <button class="navtop grp" type="button" aria-haspopup="true" aria-expanded="false">Analyze <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="menu" role="menu">
+          <button class="nav item" data-page="predict" type="button" role="menuitem"><i class="dot d1"></i><span><b>Fraud Prediction</b><small>Score a single transaction</small></span></button>
+          <button class="nav item" data-page="batch" type="button" role="menuitem"><i class="dot d2"></i><span><b>Batch CSV Analysis</b><small>Score a whole file at once</small></span></button>
+        </div>
+      </div>
+
+      <div class="navgroup">
+        <button class="navtop grp" type="button" aria-haspopup="true" aria-expanded="false">Transactions <span id="q-badge-g" class="count hidden"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="menu" role="menu">
+          <button class="nav item" data-page="history" type="button" role="menuitem"><i class="dot d3"></i><span><b>Transaction History</b><small>Search, sort and filter</small></span></button>
+          <button class="nav item" data-page="queue" type="button" role="menuitem"><i class="dot d4"></i><span><b>Review Queue <span id="q-badge" class="count hidden"></span></b><small>Analyst decisions, ranked</small></span></button>
+        </div>
+      </div>
+
+      <button class="nav navtop" data-page="performance" type="button">Model Performance</button>
+    </nav>
+
+    <div class="topright">
+      <span id="top-pill" class="pill" title="Decision threshold in use"><i class="live"></i>Threshold –</span>
+      <button id="menu-btn" class="icon-btn" type="button" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<div id="dots" class="dots" aria-label="Sections"></div>
+
+<main id="main">
+  <section class="hero" aria-live="polite">
+    <svg class="ribbons" viewBox="0 0 520 220" aria-hidden="true" preserveAspectRatio="xMaxYMid meet">
+      <defs>
+        <linearGradient id="r1" x1="0" x2="1"><stop offset="0" stop-color="#d31bb5"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+        <linearGradient id="r2" x1="0" x2="1"><stop offset="0" stop-color="#f0abfc"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
+      </defs>
+      <path class="rb rb3" d="M20 60 C 150 20, 250 190, 500 110" stroke="#f5d0f0"/>
+      <path class="rb rb2" d="M10 90 C 150 50, 260 200, 505 135" stroke="url(#r2)"/>
+      <path class="rb rb1" d="M0 120 C 140 90, 270 200, 510 160" stroke="url(#r1)"/>
+    </svg>
+    <div class="hero-in">
+      <span id="hero-eyebrow" class="eyebrow">Fraud intelligence</span>
+      <h1 id="page-title">Dashboard</h1>
+      <p id="hero-desc" class="lead"></p>
+      <div id="hero-actions" class="row"></div>
+    </div>
+  </section>
+
+<section id="dashboard" class="page active" aria-labelledby="page-title">
+  <div class="kpis">
+    <div class="card kpi"><span class="k-ic ic-violet"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span><span class="k-l">Total Transactions</span><b id="s-total" class="sk">0000</b></div>
+    <div class="card kpi"><span class="k-ic ic-green"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span><span class="k-l">Normal Transactions</span><b id="s-normal" class="green sk">0000</b></div>
+    <div class="card kpi"><span class="k-ic ic-amber"><svg viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3Zm0 6v5m0 3v.5"/></svg></span><span class="k-l">Suspicious Transactions</span><b id="s-fraud" class="amber sk">0000</b><small class="k-s">Predicted as fraud</small></div>
+    <div class="card kpi"><span class="k-ic ic-red"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm0 6v5m0 3v.5"/></svg></span><span class="k-l">High Risk Transactions</span><b id="s-high" class="red sk">0000</b><small class="k-s">Fraud probability ≥ 70%</small></div>
+    <div class="card kpi"><span class="k-ic ic-pink"><svg viewBox="0 0 24 24"><path d="M19 5 5 19M7 7h.01M17 17h.01"/></svg></span><span class="k-l">Fraud Rate</span><b id="s-rate" class="sk">0.0%</b><small class="k-s"><button class="linkbtn" id="s-open" type="button"><span id="s-openq">–</span> awaiting review →</button></small></div>
+    <div class="card kpi model"><span class="k-l">Model Performance</span><div id="s-model" class="ringbox"><div class="ring sk"></div></div></div>
+  </div>
+
+  <div id="dash-empty" class="card empty hidden">
+    <div class="state"><div class="state-ic"><svg viewBox="0 0 24 24"><path d="M3 7h18v12H3V7Zm0-3h18M8 12h8"/></svg></div>
+    <b>No transactions yet</b><p>Run a prediction or analyze a CSV file and live statistics will appear here.</p>
+    <div class="row c"><button class="btn arrow" data-go="predict" type="button">Run a prediction</button><button class="btn ghost" data-go="batch" type="button">Analyze a CSV</button></div></div>
+  </div>
+
+  <div class="grid3">
+    <div class="card"><h3>Fraud vs Normal</h3><div id="chart-split" class="chart"></div></div>
+    <div class="card"><h3>Risk Distribution</h3><div id="risk-dist" class="chart col"></div></div>
+    <div class="card"><h3>Daily Trend</h3><div id="chart-trend" class="chart"></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="ch"><h3>Recent Transactions</h3><button class="linkbtn" data-go="history" type="button">View all →</button></div><div class="tablewrap"><table id="t-recent"><caption class="sr">Recent transactions</caption></table></div></div>
+    <div class="card"><div class="ch"><h3>Top Suspicious Transactions</h3><button class="linkbtn" data-go="queue" type="button">Review queue →</button></div><div class="tablewrap"><table id="t-top"><caption class="sr">Top suspicious transactions</caption></table></div></div>
+  </div>
+</section>
+
+<section id="predict" class="page" aria-labelledby="page-title">
+  <div class="grid2 top">
+    <div class="card">
+      <h3>Single Transaction</h3>
+      <p class="muted">Amount and Time are yours to set. V1–V28 are anonymized PCA components from the dataset, so load a real sample or paste a row.</p>
+      <div class="row">
+        <button class="btn light" id="load-normal" type="button">Load normal sample</button>
+        <button class="btn light" id="load-fraud" type="button">Load fraud sample</button>
+        <button class="btn ghost" id="clear-form" type="button">Clear</button>
+      </div>
+      <div class="two">
+        <label>Amount ($)<input type="number" step="any" data-f="Amount" inputmode="decimal"></label>
+        <label>Time (seconds)<input type="number" step="any" data-f="Time" inputmode="decimal"></label>
+      </div>
+      <details id="pca-box" open><summary>PCA features V1–V28</summary>
+        <div id="fields" class="fields">
+          {% for f in features if f not in ('Time','Amount') %}
+          <label>{{ f }}<input type="number" step="any" data-f="{{ f }}" inputmode="decimal"></label>
+          {% endfor %}
+        </div>
+      </details>
+      <details><summary>Paste a row (JSON or 30 comma-separated values)</summary>
+        <textarea id="paste" rows="3" placeholder="Time, V1 … V28, Amount   or   {&quot;Time&quot;: 0, &quot;V1&quot;: …}"></textarea>
+        <button class="btn light sm" id="paste-btn" type="button">Fill form from pasted data</button>
+      </details>
+      <div class="row spread">
+        <span id="fill-count" class="muted">0 / 30 fields filled</span>
+        <label class="inline">Manual review cost ($)<input type="number" id="review-cost" value="10" min="0" step="1"></label>
+      </div>
+      <button class="btn arrow block" id="predict-btn" type="button">Run Prediction <kbd>Ctrl</kbd>+<kbd>Enter</kbd></button>
+    </div>
+    <div class="card sticky" id="result-card" aria-live="polite">
+      <h3>Result</h3>
+      <div id="result" class="empty small"><div class="state"><div class="state-ic"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z"/></svg></div><b>No prediction yet</b><p>Load a sample and press Run Prediction.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="batch" class="page" aria-labelledby="page-title">
+  <div class="grid2 top">
+    <div class="card">
+      <h3>Upload a CSV</h3>
+      <ol class="steps"><li>Prepare a CSV with columns <b>Time, V1–V28, Amount</b>.</li><li>Drop it below (max 10 MB / 20,000 rows).</li><li>Review the summary and download the scored file.</li></ol>
+      <label class="drop" id="drop" for="csv-file"><input type="file" id="csv-file" accept=".csv"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v4h16v-4"/></svg><b>Drop a CSV here</b> or click to browse<span id="csv-name" class="muted">Needs columns Time, V1–V28, Amount · max 10 MB / 20,000 rows</span></label>
+      <div class="row"><button class="btn arrow" id="csv-btn" type="button">Upload &amp; Predict</button>
+      <a class="btn light" href="/static/sample_transactions.csv" download>Sample CSV</a></div>
+    </div>
+    <div class="card">
+      <h3>Batch Summary</h3>
+      <div id="batch-empty" class="state"><div class="state-ic"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg></div><b>No file analyzed yet</b><p>Results and your highest-risk rows will appear here.</p></div>
+      <div id="batch-out" class="hidden">
+        <div class="mini4">
+          <div class="stat"><span>Total</span><b id="b-total"></b></div>
+          <div class="stat"><span>Fraud</span><b id="b-fraud" class="red"></b></div>
+          <div class="stat"><span>Normal</span><b id="b-normal" class="green"></b></div>
+          <div class="stat"><span>Fraud %</span><b id="b-pct"></b></div>
+        </div>
+        <p id="b-skipped" class="muted"></p>
+        <h3 class="sub-h">Highest-risk rows</h3>
+        <div class="tablewrap"><table id="b-top"><caption class="sr">Highest risk transactions in this batch</caption></table></div>
+        <div class="row"><button class="btn arrow" id="download-btn" type="button">Download all results (CSV)</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="history" class="page" aria-labelledby="page-title">
+  <div class="card">
+    <div class="row filters">
+      <input type="search" id="h-q" placeholder="Search ID or amount" aria-label="Search transactions">
+      <select id="h-pred" aria-label="Prediction filter"><option value="">All predictions</option><option>FRAUD</option><option>NORMAL</option></select>
+      <select id="h-risk" aria-label="Risk filter"><option value="">All risk levels</option><option>High</option><option>Medium</option><option>Low</option></select>
+      <select id="h-size" aria-label="Rows per page"><option value="10">10 / page</option><option value="25">25 / page</option><option value="50">50 / page</option></select>
+      <button class="btn ghost" id="h-clear" type="button">Clear history</button>
+    </div>
+    <div class="tablewrap"><table id="t-history"><caption class="sr">Transaction history</caption></table></div>
+    <div class="pager"><span id="h-info" class="muted"></span><span class="grow"></span><button class="btn light sm" id="h-prev" type="button">‹ Prev</button><span id="h-page" class="muted"></span><button class="btn light sm" id="h-next" type="button">Next ›</button></div>
+    <p class="muted">Click a row for details. Mark predictions ✓ correct or ✗ wrong to feed retraining.</p>
+  </div>
+</section>
+
+<section id="queue" class="page" aria-labelledby="page-title">
+  <div class="card">
+    <p class="muted">Flagged transactions (predicted FRAUD or Medium/High risk), ranked by expected loss = amount × fraud probability. Your decisions become training feedback.</p>
+    <div class="row"><button class="btn" id="q-open" type="button">Open</button><button class="btn light" id="q-rev" type="button">Reviewed</button><span id="q-count" class="muted"></span></div>
+    <div class="tablewrap"><table id="t-queue"><caption class="sr">Review queue</caption></table></div>
+  </div>
+</section>
+
+<section id="performance" class="page" aria-labelledby="page-title">
+  <p class="muted">Tuned XGBoost on the held-out 20% test split. <span id="m-size"></span></p>
+  <div class="subtabs" role="tablist">
+    <button class="subtab active" data-sub="s-over" type="button">Overview</button>
+    <button class="subtab" data-sub="s-tune" type="button">Threshold &amp; Cost</button>
+    <button class="subtab" data-sub="s-models" type="button">Models</button>
+    <button class="subtab" data-sub="s-rel" type="button">Reliability</button>
+    <button class="subtab" data-sub="s-maint" type="button">Maintenance</button>
+  </div>
+
+  <div class="sub active" id="s-over">
+    <div class="grid5" id="m-cards"></div>
+    <div class="grid2">
+      <div class="card"><h3>Confusion Matrix <span class="muted" id="m-thr"></span></h3><div id="m-cm"></div></div>
+      <div class="card"><h3>ROC Curve</h3><div id="m-roc" class="chart"></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>What improved vs the notebook model</h3><p class="muted">5-fold stratified cross-validation on the full dataset (mean over folds).</p><div class="tablewrap"><table id="t-improve"></table></div><p class="muted" id="improve-note"></p></div>
+      <div class="card"><h3>Top Features</h3><div id="m-feat"></div></div>
+    </div>
+  </div>
+
+  <div class="sub" id="s-tune">
+    <div class="card">
+      <h3>Threshold &amp; Cost Tuning</h3>
+      <p class="muted">Lower thresholds catch more fraud but raise false alarms. Values come from real test predictions. Total cost = fraud amount missed + review cost × transactions flagged.</p>
+      <div class="row">
+        <label class="inline grow">Threshold: <b id="th-val"></b><input type="range" id="th-slider" min="0.05" max="0.95" step="0.01" value="0.5"></label>
+        <label class="inline">Review cost ($)<input type="number" id="th-cost" value="10" min="0" step="1"></label>
+      </div>
+      <div class="grid5" id="th-cards"></div>
+      <div id="th-chart" class="chart"></div>
+      <div class="row">
+        <button class="btn light" id="th-rec" type="button">Use recommended</button>
+        <button class="btn light" id="th-best" type="button">Lowest-cost threshold</button>
+        <button class="btn arrow" id="th-apply" type="button">Apply as system threshold</button>
+      </div>
+      <p id="th-note" class="muted"></p>
+    </div>
+  </div>
+
+  <div class="sub" id="s-models">
+    <div class="card"><h3>Model Comparison</h3>
+      <p class="muted">Same split, evaluated at threshold 0.5. Logistic Regression and Random Forest use class weights instead of SMOTE. Precision/recall are for the fraud class.</p>
+      <div class="tablewrap"><table id="t-compare"></table></div><p class="muted" id="cv-note"></p></div>
+    <div class="grid2">
+      <div class="card"><h3>Time-based Validation</h3><div id="m-temporal"></div></div>
+      <div class="card"><h3>Anomaly Detection (Isolation Forest)</h3><div id="m-anom"></div></div>
+    </div>
+  </div>
+
+  <div class="sub" id="s-rel">
+    <div class="card"><h3>Probability Calibration</h3><div id="m-cal"></div></div>
+  </div>
+
+  <div class="sub" id="s-maint">
+    <div class="card">
+      <h3>Retraining</h3>
+      <p class="muted" id="mt-status"></p>
+      <div class="row"><button class="btn arrow" id="retrain-btn" type="button">Retrain with analyst feedback</button></div>
+      <div id="retrain-out"></div>
+    </div>
+    <div class="card">
+      <h3>Data Drift (PSI)</h3>
+      <p class="muted">Population Stability Index of the last 500 predicted transactions vs the training data. &lt;0.1 stable · 0.1–0.25 moderate · &gt;0.25 significant.</p>
+      <div class="row"><button class="btn light" id="drift-btn" type="button">Check data drift</button></div>
+      <div id="drift-out" class="muted"></div>
+    </div>
+    <div class="card"><h3>Model Versions</h3><div class="tablewrap"><table id="t-versions"></table></div></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot"><span>FraudGuard · XGBoost fraud detection</span><span id="side-ver" class="muted"></span></footer>
+
+<div id="overlay" class="overlay hidden"></div>
+<aside id="drawer" class="drawer hidden" aria-label="Transaction details" role="dialog" aria-modal="true">
+  <button id="drawer-close" class="btn light" type="button">Close ✕</button>
+  <div id="drawer-body"></div>
+</aside>
+<div id="toasts" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

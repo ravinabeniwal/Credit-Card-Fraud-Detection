@@ -1,0 +1,9 @@
+flask>=3.0
+gunicorn
+pandas
+numpy
+scikit-learn==1.8.0
+xgboost==3.4.1
+joblib
+# optional challenger model shown in the comparison table:
+# lightgbm
